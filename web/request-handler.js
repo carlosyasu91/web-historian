@@ -13,10 +13,6 @@ function finishResponse(res, statusCode, data){
   res.end(data);
 }
 
-var handleGet = function(req, res, path, urlObj){
-
-};
-
 var getArchivedData = function(path, res){
   var fullUrl = archive.paths.archivedSites + '/' + path;
   var body = '';
@@ -24,6 +20,10 @@ var getArchivedData = function(path, res){
     if (err) throw err;
     finishResponse(res, 200, data);
   });
+};
+
+var handleGet = function(){
+  
 };
 
 exports.handleRequest = function (req, res) {
@@ -36,18 +36,26 @@ exports.handleRequest = function (req, res) {
 
   if (req.method === 'POST') {
     var theUrl = '';
+
     req.on('data', function(data){
       console.log('data: ' + data);
       theUrl += data;
     });
+
     req.on('end', function() {
       theUrl = qs.parse(theUrl).url;
       archive.addUrlToList(theUrl + '\n', function(flag) {
         if (flag) {
-          console.log('-------------->NEW LIST: ' + fs.readFileSync(archive.paths.list));
-          res.responseCode = 302;
-          res.writeHead(302, httpHelpers.headers);
-          res.end(theUrl);
+          if (archive.isUrlArchived(path, function(isArchived) {
+            if (isArchived) {
+              getArchivedData(path, res);
+            } else {
+              fs.readFile(archive.paths.loading, function(err, data) {
+                if (err) throw err;
+                finishResponse(res, 302, data);
+              });
+            }
+          }));
         }
       });
     });
