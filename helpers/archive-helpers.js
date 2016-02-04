@@ -34,12 +34,13 @@ exports.readListOfUrls = function(callback) {
 };
 
 exports.isUrlInList = function(target, callback) {
+  callback = callback || _.identity;
   var flag = false;
   exports.readListOfUrls(function(array){
     for (var i = 0; i < array.length; i++) {
       if (array[i] === target) {
         flag = true;
-      } 
+      }
     }
     callback(flag);
   });
@@ -57,21 +58,12 @@ exports.addUrlToList = function(url, callback) {
 
 exports.isUrlArchived = function(url, callback) {
   var flag = false;
-  fs.readFile(exports.paths.list, function(err, data) {
-      if (err) throw err;
-      var array = data.toString().split('\n');
-      if(array.indexOf(url) > -1){
-        flag = true;
-      }
-      callback(flag);
-  });  
-  // exports.readListOfUrls(function(urls){
-  //   if(urls.indexOf(url) > -1){
-  //     console.log('------------->FOUND!');
-  //     flag = true;
-  //   }
-  //   callback(flag);
-  // });
+  var urls = fs.readdirSync(exports.paths.archivedSites + '/');
+  if(urls.indexOf(url) > -1){
+    callback(true);
+  } else {
+    callback(false);
+  }
 };
 
 var writeToFile = function(url){

@@ -10,21 +10,29 @@ function finishResponse(res, statusCode, data){
   res.end(data);
 }
 
+var handleGet = function(req, res, path, urlObj){
+
+};
+
 exports.handleRequest = function (req, res) {
+
   console.log('Serving request type: ' + req.method + ', for url: ' + req.url);
+
   var parsedUrl = url.parse(req.url);
   var path = parsedUrl.pathname.slice(1);
   if (req.method === 'GET') {
     if(path.length > 0){ 
       archive.isUrlArchived(path, function(isArchived){
         if(isArchived){
-          var fullUrl = archive.archivedSites + '/' + path;
-          fs.readFile(fullUrl, 'utf-8', function(err, data) {
-            finishResponse(res, 200, data);
-          });  
-        } else {
+          var fullUrl = archive.paths.archivedSites + '/' + path;
+          console.log('full url:' + fullUrl);
+          var body = '';
+          var data = fs.readFileSync(fullUrl);
+          finishResponse(res, 200, data);
+        }  
+        // } else {
           // finishResponse(res, 200, "google");
-        }
+        // }
       });
     } else { 
       fs.readFile(archive.paths.index,'utf-8', function(err, data) {
@@ -33,5 +41,6 @@ exports.handleRequest = function (req, res) {
       });
     }
   }
+
   // res.end(archive.paths.list);
 };
