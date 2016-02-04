@@ -22,6 +22,7 @@ describe("server", function() {
       request
         .get('/')
         .expect(200, /<input/, done);
+        // console.log(request.get('/'));
     });
   });
 
