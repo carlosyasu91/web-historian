@@ -1,8 +1,10 @@
+'use strict';
 var path = require('path');
 var archive = require('../helpers/archive-helpers');
 var httpHelpers = require('./http-helpers');
 var url = require('url');
 var fs = require('fs');
+
 // require more modules/folders here!
 
 function finishResponse(res, statusCode, data){
@@ -25,10 +27,11 @@ exports.handleRequest = function (req, res) {
       archive.isUrlArchived(path, function(isArchived){
         if(isArchived){
           var fullUrl = archive.paths.archivedSites + '/' + path;
-          console.log('full url:' + fullUrl);
           var body = '';
-          var data = fs.readFileSync(fullUrl);
-          finishResponse(res, 200, data);
+          var data = fs.readFile(fullUrl, function (err, data) {
+            if (err) throw err;
+            finishResponse(res, 200, data);
+          });
         }  
         // } else {
           // finishResponse(res, 200, "google");

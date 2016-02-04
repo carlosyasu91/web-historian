@@ -57,13 +57,16 @@ exports.addUrlToList = function(url, callback) {
 };
 
 exports.isUrlArchived = function(url, callback) {
-  var flag = false;
-  var urls = fs.readdirSync(exports.paths.archivedSites + '/');
-  if(urls.indexOf(url) > -1){
+  var urls = fs.readdir(exports.paths.archivedSites, function(err, files) {
+    if (err) throw err;
+  if(files.indexOf(url) > -1){
     callback(true);
   } else {
     callback(false);
   }
+    
+  });
+  console.log(urls) ;
 };
 
 var writeToFile = function(url){
