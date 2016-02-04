@@ -4,6 +4,7 @@ var archive = require('../helpers/archive-helpers');
 var httpHelpers = require('./http-helpers');
 var url = require('url');
 var fs = require('fs');
+var qs = require('querystring');
 
 // require more modules/folders here!
 
@@ -31,6 +32,27 @@ exports.handleRequest = function (req, res) {
 
   var parsedUrl = url.parse(req.url);
   var path = parsedUrl.pathname.slice(1);
+          console.log('-------------->OLD LIST: ' + fs.readFileSync(archive.paths.list));
+
+  if (req.method === 'POST') {
+    var theUrl = '';
+    req.on('data', function(data){
+      console.log('data: ' + data);
+      theUrl += data;
+    });
+    req.on('end', function() {
+      theUrl = qs.parse(theUrl).url;
+      archive.addUrlToList(theUrl + '\n', function(flag) {
+        if (flag) {
+          console.log('-------------->NEW LIST: ' + fs.readFileSync(archive.paths.list));
+          res.responseCode = 302;
+          res.writeHead(302, httpHelpers.headers);
+          res.end(theUrl);
+        }
+      });
+    });
+  }
+
   if (req.method === 'GET') {
     if(path.length > 0){ 
       archive.isUrlArchived(path, function(isArchived){
@@ -46,7 +68,7 @@ exports.handleRequest = function (req, res) {
         finishResponse(res, 200, data);
       });
     }
-  }
+  } 
 
   // res.end(archive.paths.list);
 };

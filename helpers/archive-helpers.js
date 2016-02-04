@@ -57,6 +57,7 @@ exports.isUrlInList = function(target, callback) {
 
 exports.addUrlToList = function(url, callback) {
   exports.readListOfUrls(function(array){
+    array.pop();
     array.push(url);
     fs.writeFile(exports.paths.list, array.join('\n'), function(err, data) {
       if (err) throw callback(false);
