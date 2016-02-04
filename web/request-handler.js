@@ -16,6 +16,15 @@ var handleGet = function(req, res, path, urlObj){
 
 };
 
+var getArchivedData = function(path, res){
+  var fullUrl = archive.paths.archivedSites + '/' + path;
+  var body = '';
+  var data = fs.readFile(fullUrl, function (err, data) {
+    if (err) throw err;
+    finishResponse(res, 200, data);
+  });
+};
+
 exports.handleRequest = function (req, res) {
 
   console.log('Serving request type: ' + req.method + ', for url: ' + req.url);
@@ -25,19 +34,13 @@ exports.handleRequest = function (req, res) {
   if (req.method === 'GET') {
     if(path.length > 0){ 
       archive.isUrlArchived(path, function(isArchived){
-        if(isArchived){
-          var fullUrl = archive.paths.archivedSites + '/' + path;
-          var body = '';
-          var data = fs.readFile(fullUrl, function (err, data) {
-            if (err) throw err;
-            finishResponse(res, 200, data);
-          });
-        }  
-        // } else {
-          // finishResponse(res, 200, "google");
-        // }
-      });
-    } else { 
+      if(isArchived){
+        getArchivedData(path, res);
+      } else {
+        finishResponse(res, 404, '404');
+      }
+    });
+  } else { 
       fs.readFile(archive.paths.index,'utf-8', function(err, data) {
         if (err) throw err;
         finishResponse(res, 200, data);

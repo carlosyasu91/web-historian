@@ -28,22 +28,31 @@ exports.initialize = function(pathsObj) {
 exports.readListOfUrls = function(callback) {
     fs.readFile(exports.paths.list, function(err, data) {
       if (err) throw err;
+      console.log(data.toString());
       var array = data.toString().split('\n');
       callback(array);
     });  
 };
 
 exports.isUrlInList = function(target, callback) {
-  callback = callback || _.identity;
-  var flag = false;
-  exports.readListOfUrls(function(array){
-    for (var i = 0; i < array.length; i++) {
-      if (array[i] === target) {
-        flag = true;
+  fs.readFile(exports.paths.list, function(err, data) {
+      if (err) throw err;
+      console.log(data.toString());
+      var array = data.toString().split('\n');
+      console.log(target);
+      if (array.indexOf(target) > -1) {
+        callback(true);
+      } else {
+        callback(false);
       }
-    }
-    callback(flag);
-  });
+    });  
+  // exports.readListOfUrls(function(array){
+  //   if (array.indexOf(target) > -1) {
+  //     callback(true);
+  //   } else {
+  //     callback(false);
+  //   }
+  // });
 };
 
 exports.addUrlToList = function(url, callback) {
@@ -57,16 +66,18 @@ exports.addUrlToList = function(url, callback) {
 };
 
 exports.isUrlArchived = function(url, callback) {
+
   var urls = fs.readdir(exports.paths.archivedSites, function(err, files) {
+
     if (err) throw err;
-  if(files.indexOf(url) > -1){
-    callback(true);
-  } else {
-    callback(false);
-  }
-    
+
+    if(files.indexOf(url) > -1){
+      callback(true);
+    } else {
+      callback(false);
+    }    
+
   });
-  console.log(urls) ;
 };
 
 var writeToFile = function(url){
