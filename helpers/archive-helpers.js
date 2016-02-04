@@ -1,7 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
-
+var http = require('http');
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
  * Consider using the `paths` object below to store frequently used file paths. This way,
@@ -34,13 +34,14 @@ exports.readListOfUrls = function(callback) {
 };
 
 exports.isUrlInList = function(target, callback) {
+  var flag = false;
   exports.readListOfUrls(function(array){
     for (var i = 0; i < array.length; i++) {
       if (array[i] === target) {
-        callback(true);
+        flag = true;
       } 
     }
-    callback(false);
+    callback(flag);
   });
 };
 
@@ -48,18 +49,49 @@ exports.addUrlToList = function(url, callback) {
   exports.readListOfUrls(function(array){
     array.push(url);
     fs.writeFile(exports.paths.list, array.join('\n'), function(err, data) {
-      if (err) throw err;
-      callback(true);
+      if (err) throw callback(false);
+      else callback(true);
     });
   });
-  callback(false);
 };
 
 exports.isUrlArchived = function(url, callback) {
-  var filePath = path.join(__dirname, '../test/testdata/sites/' + url);
-  console.log('Filepath: ' + filePath);
-  fs.readFile(filePath, 'utf8', callback);
+  var flag = false;
+  fs.readFile(exports.paths.list, function(err, data) {
+      if (err) throw err;
+      var array = data.toString().split('\n');
+      if(array.indexOf(url) > -1){
+        flag = true;
+      }
+      callback(flag);
+  });  
+  // exports.readListOfUrls(function(urls){
+  //   if(urls.indexOf(url) > -1){
+  //     console.log('------------->FOUND!');
+  //     flag = true;
+  //   }
+  //   callback(flag);
+  // });
 };
 
-exports.downloadUrls = function() {
+var writeToFile = function(url){
+  var fullUrl = 'http://' + url;
+  var fullPath = exports.paths.archivedSites + '/' + url;
+  http.get(fullUrl, function(res) {
+    var body = '';
+    res.on('data', function(chunk) {
+      body += chunk;
+    });
+    res.on('end', function() {
+      fs.writeFile(fullPath, body, function(err, data) {
+        if (err) throw err;
+      });
+    });
+  });
+};
+
+exports.downloadUrls = function(urls) {
+  _.each(urls, function(url) {
+    writeToFile(url);
+  });
 };

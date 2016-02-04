@@ -5,28 +5,33 @@ var url = require('url');
 var fs = require('fs');
 // require more modules/folders here!
 
+function finishResponse(res, statusCode, data){
+  res.writeHead(statusCode, httpHelpers.headers);
+  res.end(data);
+}
+
 exports.handleRequest = function (req, res) {
   console.log('Serving request type: ' + req.method + ', for url: ' + req.url);
   var parsedUrl = url.parse(req.url);
+  var path = parsedUrl.pathname.slice(1);
   if (req.method === 'GET') {
-
-    if(parsedUrl.pathname === "/www.google.com"){ 
-
-      console.log('inside.................path', parsedUrl.pathname.slice(1));
-
-      archive.isUrlArchived(parsedUrl.pathname.slice(1), function(err, data){
-        if(err) throw err;
-        res.writeHead(200, httpHelpers.headers);
-        res.end(data);  
+    if(path.length > 0){ 
+      archive.isUrlArchived(path, function(isArchived){
+        if(isArchived){
+          var fullUrl = archive.archivedSites + '/' + path;
+          fs.readFile(fullUrl, 'utf-8', function(err, data) {
+            finishResponse(res, 200, data);
+          });  
+        } else {
+          // finishResponse(res, 200, "google");
+        }
       });
-    } 
-    fs.readFile(archive.paths.index,'utf-8', function(err, data) {
-      if (err) throw err;
-      // console.log(data);
-      res.writeHead(200, httpHelpers.headers);
-      res.end(data);
-    });
+    } else { 
+      fs.readFile(archive.paths.index,'utf-8', function(err, data) {
+        if (err) throw err;
+        finishResponse(res, 200, data);
+      });
+    }
   }
-
   // res.end(archive.paths.list);
 };
